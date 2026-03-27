@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0e1a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="NutriLog"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>NutriLog</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e293b;
+    --text:#e2e8f0;--muted:#64748b;--dim:#334155;
+    --cal:#f97316;--prot:#3b82f6;--carb:#a855f7;--fat:#eab308;--fib:#22c55e;
+    --grad:linear-gradient(135deg,#f97316,#a855f7);
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
+  #app{height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
+
+/* SCROLLABLE CONTENT */
+#content{flex:1;overflow-y:auto;padding-bottom:80px;scroll-behavior:smooth}
+#content::-webkit-scrollbar{display:none}
+
+/* HEADER */
+.header{padding:env(safe-area-inset-top,20px) 20px 0;padding-top:max(env(safe-area-inset-top),20px)}
+.logo{font-family:‘Syne’,sans-serif;font-size:28px;font-weight:800;background:var(–grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subdate{font-size:13px;color:var(–muted);margin-top:2px}
+
+/* BOTTOM NAV */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d1424ee;backdrop-filter:blur(16px);border-top:1px solid var(–border);display:flex;justify-content:space-around;padding:10px 0;padding-bottom:max(env(safe-area-inset-bottom),14px);z-index:100}
+.nav-btn{background:none;border:none;cursor:pointer;color:var(–muted);font-size:10px;font-weight:600;font-family:‘DM Sans’,sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;transition:color .2s;letter-spacing:.5px;text-transform:uppercase}
+.nav-btn.active{color:var(–cal)}
+.nav-btn .icon{font-size:22px;line-height:1}
+
+/* CARDS */
+.card{background:var(–surface);border:1px solid var(–border);border-radius:18px;padding:16px;margin-bottom:12px}
+.section{padding:0 16px;margin-top:18px}
+.section-label{font-size:11px;font-weight:700;color:var(–muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px}
+
+/* CALORIE RING */
+.ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ring-center{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-cal{font-family:‘Syne’,sans-serif;font-size:22px;font-weight:800;color:var(–cal);line-height:1}
+.ring-sub{font-size:10px;color:var(–muted)}
+
+/* MACRO BAR */
+.mbar{margin-bottom:9px}
+.mbar-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.mbar-label{font-weight:600;color:var(–text)}
+.mbar-val{color:var(–muted)}
+.mbar-track{height:5px;border-radius:99px;background:#1e293b;overflow:hidden}
+.mbar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+
+/* MACRO MINI CARDS */
+.macro-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.macro-mini{background:var(–surface);border:1px solid var(–border);border-radius:14px;padding:12px}
+.macro-mini-label{font-size:11px;color:var(–muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+.macro-mini-val{font-family:‘Syne’,sans-serif;font-size:24px;font-weight:800;line-height:1.1;margin-top:2px}
+.macro-mini-unit{font-size:11px;color:var(–muted);font-weight:400}
+.macro-mini-of{font-size:11px;color:var(–dim);margin-top:2px}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+label.lbl{display:block;font-size:12px;font-weight:600;color:var(–muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px}
+input.inp,select.inp,textarea.inp{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:11px;padding:11px 13px;color:var(–text);font-size:15px;font-family:‘DM Sans’,sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none}
+input.inp:focus,select.inp:focus,textarea.inp:focus{border-color:#f97316}
+.inp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* AI SEARCH */
+.ai-row{display:flex;gap:8px;margin-bottom:14px}
+.ai-row .inp{flex:1}
+.ai-btn{background:var(–grad);border:none;border-radius:11px;padding:11px 16px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;font-family:‘DM Sans’,sans-serif;display:flex;align-items:center;gap:6px;transition:opacity .2s}
+.ai-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-status{font-size:13px;color:var(–muted);padding:8px 0;display:flex;align-items:center;gap:6px;min-height:36px}
+.spinner{width:14px;height:14px;border:2px solid var(–border);border-top-color:var(–cal);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FETCHED RESULT PREVIEW */
+.result-preview{background:var(–surface2);border:1px solid #f9731633;border-radius:13px;padding:13px;margin-bottom:14px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result-food-name{font-family:‘Syne’,sans-serif;font-size:16px;font-weight:700;margin-bottom:8px;color:var(–cal)}
+.result-macros{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px}
+
+/* ADD BUTTON */
+.btn-primary{background:var(–grad);color:#fff;border:none;border-radius:13px;padding:14px 24px;font-weight:700;font-size:15px;font-family:‘Syne’,sans-serif;cursor:pointer;width:100%;letter-spacing:.3px;transition:opacity .2s}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:none;border:1px solid var(–border);border-radius:11px;padding:8px 14px;color:var(–muted);font-size:12px;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-weight:600;transition:border-color .2s}
+.btn-ghost:hover{border-color:var(–cal);color:var(–cal)}
+
+/* FOOD LOG */
+.meal-header{font-size:11px;font-weight:700;color:var(–muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.entry-row{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #0a0e1a}
+.entry-row:last-child{border-bottom:none;padding-bottom:0}
+.entry-info{flex:1}
+.entry-name{font-size:14px;font-weight:600;line-height:1.2}
+.entry-meta{font-size:12px;color:var(–muted);margin-top:2px}
+.entry-cal{font-family:‘Syne’,sans-serif;font-size:15px;font-weight:700;color:var(–cal);margin-right:8px;flex-shrink:0;margin-top:1px}
+.del-btn{background:none;border:none;color:var(–dim);cursor:pointer;font-size:20px;padding:0 4px;line-height:1;transition:color .2s}
+.del-btn:hover{color:#f87171}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:36px 0;color:var(–dim);font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:10px;display:block}
+
+/* HISTORY */
+.hist-row{display:flex;justify-content:space-between;align-items:center}
+.hist-date{font-weight:600;font-size:14px}
+.hist-sub{font-size:12px;color:var(–muted);margin-top:2px}
+.hist-cal{font-family:‘Syne’,sans-serif;font-size:22px;font-weight:800;color:var(–cal)}
+.hist-kcal{font-size:11px;color:var(–muted)}
+
+/* GOALS */
+.goals-note{font-size:13px;color:var(–muted);margin-bottom:16px;line-height:1.5}
+
+/* TOAST */
+.toast{position:fixed;top:max(env(safe-area-inset-top),20px);left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:9px 20px;border-radius:99px;font-size:13px;font-weight:700;z-index:999;animation:fadeUp .3s ease;white-space:nowrap;font-family:‘Syne’,sans-serif}
+
+/* INSTALL BANNER */
+.install-banner{background:var(–surface2);border:1px solid #f9731633;border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.install-icon{font-size:28px;flex-shrink:0}
+.install-text{flex:1;font-size:13px;color:var(–muted);line-height:1.4}
+.install-text strong{color:var(–text);display:block;margin-bottom:2px}
+</style>
+
+</head>
+<body>
+<div id="app">
+  <div id="content">
+    <div class="header">
+      <div class="logo">NutriLog</div>
+      <div class="subdate" id="dateLabel"></div>
+    </div>
+    <div id="view-today" class="view"></div>
+    <div id="view-add" class="view" style="display:none"></div>
+    <div id="view-goals" class="view" style="display:none"></div>
+    <div id="view-history" class="view" style="display:none"></div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" data-view="today"><span class="icon">📊</span>Today</button>
+    <button class="nav-btn" data-view="add"><span class="icon">＋</span>Add Food</button>
+    <button class="nav-btn" data-view="goals"><span class="icon">🎯</span>Goals</button>
+    <button class="nav-btn" data-view="history"><span class="icon">📅</span>History</button>
+  </nav>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const TODAY = new Date().toISOString().split('T')[0];
+const MACRO_COLORS = {calories:'#f97316',protein:'#3b82f6',carbs:'#a855f7',fat:'#eab308',fiber:'#22c55e'};
+const MEAL_COLORS = {Breakfast:'#f97316',Lunch:'#3b82f6',Dinner:'#a855f7',Snack:'#22c55e'};
+const MEALS = ['Breakfast','Lunch','Dinner','Snack'];
+
+let state = {
+  log: JSON.parse(localStorage.getItem('nutrilog_v2') || '{}'),
+  goals: JSON.parse(localStorage.getItem('nutrilog_goals') || 'null') || {calories:2000,protein:150,carbs:250,fat:65,fiber:30},
+  currentView: 'today',
+  addForm: {query:'',qty:'',meal:'Breakfast',fetched:null,name:'',calories:'',protein:'',carbs:'',fat:'',fiber:''},
+  aiLoading: false,
+  aiError: '',
+  toast: null,
+};
+
+function saveLog(){ localStorage.setItem('nutrilog_v2', JSON.stringify(state.log)); }
+function saveGoals(){ localStorage.setItem('nutrilog_goals', JSON.stringify(state.goals)); }
+
+function todayEntries(){ return state.log[TODAY] || []; }
+function totals(entries){
+  return entries.reduce((a,e)=>({calories:a.calories+e.calories,protein:a.protein+e.protein,carbs:a.carbs+e.carbs,fat:a.fat+e.fat,fiber:a.fiber+e.fiber}),{calories:0,protein:0,carbs:0,fat:0,fiber:0});
+}
+
+// ─── RENDER HELPERS ──────────────────────────────────────────────────────────
+function ring(value, max, color, size=88){
+  const r=(size-10)/2, circ=2*Math.PI*r, pct=Math.min(value/max,1), dash=pct*circ;
+  return `<svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#1e293b" stroke-width="7"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+      stroke-dasharray="${dash} ${circ}" stroke-linecap="round" style="transition:stroke-dasharray .6s ease"/>
+  </svg>`;
+}
+
+function mbar(label,val,goal,color){
+  const pct=Math.min((val/goal)*100,100), over=val>goal;
+  return `<div class="mbar">
+    <div class="mbar-row"><span class="mbar-label">${label}</span><span class="mbar-val" style="color:${over?'#f87171':''}">${Math.round(val)} / ${goal}${label==='Calories'?'kcal':'g'}</span></div>
+    <div class="mbar-track"><div class="mbar-fill" style="width:${pct}%;background:${over?'#f87171':color}"></div></div>
+  </div>`;
+}
+
+function showToast(msg){
+  clearTimeout(state.toastTimer);
+  const old=document.querySelector('.toast');
+  if(old)old.remove();
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  state.toastTimer=setTimeout(()=>t.remove(),2500);
+}
+
+// ─── AI NUTRITION FETCH ───────────────────────────────────────────────────────
+async function fetchNutrition(){
+  const q=state.addForm.query.trim(), qty=state.addForm.qty.trim();
+  if(!q){ showToast('Enter a food name first'); return; }
+  state.aiLoading=true; state.aiError=''; state.addForm.fetched=null;
+  renderView('add');
+
+  const prompt=`You are a nutrition database. The user wants nutrition info for: "${qty?qty+' of ':''} ${q}".
+Return ONLY valid JSON (no markdown, no explanation):
+{"name":"<descriptive name with quantity>","calories":<number>,"protein":<number>,"carbs":<number>,"fat":<number>,"fiber":<number>}
+All values per the quantity specified (default 100g if no quantity). Numbers are rounded integers.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const raw=data.content.find(b=>b.type==='text')?.text||'';
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    state.addForm.fetched=parsed;
+    state.addForm.name=parsed.name;
+    state.addForm.calories=String(parsed.calories);
+    state.addForm.protein=String(parsed.protein);
+    state.addForm.carbs=String(parsed.carbs);
+    state.addForm.fat=String(parsed.fat);
+    state.addForm.fiber=String(parsed.fiber);
+  }catch(e){
+    state.aiError='Could not fetch nutrition. You can fill in values manually.';
+  }
+  state.aiLoading=false;
+  renderView('add');
+}
+
+// ─── ADD ENTRY ────────────────────────────────────────────────────────────────
+function addEntry(){
+  const f=state.addForm;
+  if(!f.name||!f.calories){ showToast('Need a name and calories'); return; }
+  const entry={
+    id:Date.now(),
+    time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    meal:f.meal, name:f.name,
+    calories:Number(f.calories)||0, protein:Number(f.protein)||0,
+    carbs:Number(f.carbs)||0, fat:Number(f.fat)||0, fiber:Number(f.fiber)||0
+  };
+  if(!state.log[TODAY]) state.log[TODAY]=[];
+  state.log[TODAY].push(entry);
+  saveLog();
+  state.addForm={query:'',qty:'',meal:f.meal,fetched:null,name:'',calories:'',protein:'',carbs:'',fat:'',fiber:''};
+  showToast('✓ Added to log!');
+  switchView('today');
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────────────────────
+function renderToday(){
+  const entries=todayEntries(), t=totals(entries), g=state.goals;
+  const byMeal=MEALS.reduce((a,m)=>({...a,[m]:entries.filter(e=>e.meal===m)}),{});
+
+  // Install banner (iOS)
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
+  const installBanner=isIOS&&!isStandalone?`<div class="install-banner">
+    <span class="install-icon">📲</span>
+    <div class="install-text"><strong>Install on your Home Screen</strong>Tap the Share button → "Add to Home Screen" to use NutriLog as an app.</div>
+  </div>`:'';
+
+  const mealLog=MEALS.map(meal=>{
+    const items=byMeal[meal];
+    if(!items.length)return'';
+    return`<div class="card">
+      <div class="meal-header">${meal}</div>
+      ${items.map(e=>`<div class="entry-row">
+        <div class="entry-info">
+          <div class="entry-name">${e.name}</div>
+          <div class="entry-meta">${Math.round(e.protein)}g protein · ${Math.round(e.carbs)}g carbs · ${Math.round(e.fat)}g fat · ${e.time}</div>
+        </div>
+        <span class="entry-cal">${Math.round(e.calories)}</span>
+        <button class="del-btn" onclick="deleteEntry('${e.id}')">×</button>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  return`
+    ${installBanner}
+    <div class="section">
+      <div class="card" style="display:flex;align-items:center;gap:18px">
+        <div class="ring-wrap">
+          ${ring(t.calories,g.calories,'#f97316',92)}
+          <div class="ring-center">
+            <div class="ring-cal">${Math.round(t.calories)}</div>
+            <div class="ring-sub">kcal</div>
+          </div>
+        </div>
+        <div style="flex:1">
+          ${mbar('Calories',t.calories,g.calories,'#f97316')}
+          ${mbar('Protein',t.protein,g.protein,'#3b82f6')}
+          ${mbar('Carbs',t.carbs,g.carbs,'#a855f7')}
+          ${mbar('Fat',t.fat,g.fat,'#eab308')}
+          ${mbar('Fiber',t.fiber,g.fiber,'#22c55e')}
+        </div>
+      </div>
+      <div class="macro-grid">
+        ${[['Protein','protein','g','#3b82f6'],['Carbs','carbs','g','#a855f7'],['Fat','fat','g','#eab308'],['Fiber','fiber','g','#22c55e']].map(([l,k,u,c])=>`
+        <div class="macro-mini">
+          <div class="macro-mini-label">${l}</div>
+          <div class="macro-mini-val" style="color:${c}">${Math.round(t[k])}<span class="macro-mini-unit">${u}</span></div>
+          <div class="macro-mini-of">of ${g[k]}${u}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Today's Food</div>
+      ${entries.length===0?`<div class="empty"><span class="empty-icon">🥗</span>Nothing logged yet.<br>Tap <b>Add Food</b> to get started.</div>`:mealLog}
+    </div>`;
+}
+
+function renderAdd(){
+  const f=state.addForm;
+  const preview=f.fetched?`<div class="result-preview">
+    <div class="result-food-name">${f.fetched.name}</div>
+    <div class="result-macros">
+      <span class="tag" style="background:#f9731622;color:#f97316">${f.fetched.calories} kcal</span>
+      <span class="tag" style="background:#3b82f622;color:#3b82f6">P: ${f.fetched.protein}g</span>
+      <span class="tag" style="background:#a855f722;color:#a855f7">C: ${f.fetched.carbs}g</span>
+      <span class="tag" style="background:#eab30822;color:#eab308">F: ${f.fetched.fat}g</span>
+      <span class="tag" style="background:#22c55e22;color:#22c55e">Fi: ${f.fetched.fiber}g</span>
+    </div>
+  </div>`:'';
+
+  const statusHtml=state.aiLoading
+    ?`<div class="ai-status"><div class="spinner"></div> Looking up nutrition…</div>`
+    :state.aiError?`<div class="ai-status" style="color:#f87171">⚠ ${state.aiError}</div>`
+    :f.fetched?`<div class="ai-status" style="color:#22c55e">✓ Nutrition fetched — review & confirm below</div>`:'';
+
+  return`<div class="section">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">Add Food</div>
+    <div class="card">
+      <div class="form-group">
+        <label class="lbl">What did you eat? (AI will fetch nutrition)</label>
+        <div class="ai-row">
+          <input class="inp" id="q-food" type="text" placeholder="e.g. grilled chicken" value="${escHtml(f.query)}" oninput="state.addForm.query=this.value" onkeydown="if(event.key==='Enter')fetchNutrition()"/>
+          <button class="ai-btn" onclick="fetchNutrition()" ${state.aiLoading?'disabled':''}>
+            ${state.aiLoading?'<div class="spinner" style="border-top-color:#fff"></div>':'✦'} Lookup
+          </button>
+        </div>
+        <input class="inp" id="q-qty" type="text" placeholder="Quantity (e.g. 150g, 1 cup, 2 pieces)" value="${escHtml(f.qty)}" oninput="state.addForm.qty=this.value" style="margin-top:8px"/>
+      </div>
+      ${statusHtml}
+      ${preview}
+      <div class="form-group">
+        <label class="lbl">Meal</label>
+        <select class="inp" onchange="state.addForm.meal=this.value">
+          ${MEALS.map(m=>`<option value="${m}" ${f.meal===m?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Nutrition Values — Edit if Needed</div>
+      <div class="form-group">
+        <label class="lbl">Name / Description</label>
+        <input class="inp" type="text" placeholder="Food name" value="${escHtml(f.name)}" oninput="state.addForm.name=this.value"/>
+      </div>
+      <div class="inp-grid" style="margin-bottom:14px">
+        ${[['Calories (kcal)','calories'],['Protein (g)','protein'],['Carbs (g)','carbs'],['Fat (g)','fat'],['Fiber (g)','fiber']].map(([l,k])=>`
+        <div class="form-group" style="margin-bottom:0">
+          <label class="lbl">${l}</label>
+          <input class="inp" type="number" inputmode="decimal" placeholder="0" value="${escHtml(f[k])}" oninput="state.addForm.${k}=this.value"/>
+        </div>`).join('')}
+      </div>
+      <button class="btn-primary" onclick="addEntry()">Add to Log</button>
+    </div>
+  </div>`;
+}
+
+function renderGoals(){
+  const g=state.goals;
+  return`<div class="section">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">Daily Goals</div>
+    <p class="goals-note">Set your daily nutrition targets. Changes save automatically.</p>
+    <div class="card">
+      ${[['Calories (kcal)','calories'],['Protein (g)','protein'],['Carbs (g)','carbs'],['Fat (g)','fat'],['Fiber (g)','fiber']].map(([l,k])=>`
+      <div class="form-group">
+        <label class="lbl">${l}</label>
+        <input class="inp" type="number" inputmode="numeric" value="${g[k]}" oninput="state.goals.${k}=Number(this.value);saveGoals();"/>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderHistory(){
+  const days=Object.keys(state.log).filter(d=>d!==TODAY).sort().reverse().slice(0,14);
+  const rows=days.map(d=>{
+    const entries=state.log[d]||[];
+    const t=totals(entries);
+    const label=new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    return`<div class="card">
+      <div class="hist-row">
+        <div>
+          <div class="hist-date">${label}</div>
+          <div class="hist-sub">${entries.length} item${entries.length!==1?'s':''} · ${Math.round(t.protein)}g protein · ${Math.round(t.carbs)}g carbs</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-cal">${Math.round(t.calories)}</div>
+          <div class="hist-kcal">kcal</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  return`<div class="section">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">History</div>
+    ${days.length===0?`<div class="empty"><span class="empty-icon">📅</span>No past days yet.<br>Keep logging!</div>`:rows}
+  </div>`;
+}
+
+// ─── ROUTING ──────────────────────────────────────────────────────────────────
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderView(v){
+  const views={today:renderToday,add:renderAdd,goals:renderGoals,history:renderHistory};
+  const el=document.getElementById(`view-${v}`);
+  if(el) el.innerHTML=views[v]();
+}
+
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.style.display='none');
+  document.querySelector(`#view-${v}`).style.display='block';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  state.currentView=v;
+  renderView(v);
+  document.getElementById('content').scrollTop=0;
+  // Focus search input when switching to add
+  if(v==='add') setTimeout(()=>{ const el=document.getElementById('q-food'); if(el)el.focus(); },100);
+}
+
+function deleteEntry(id){
+  if(!state.log[TODAY])return;
+  state.log[TODAY]=state.log[TODAY].filter(e=>String(e.id)!==String(id));
+  saveLog();
+  renderView('today');
+  showToast('Removed');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('dateLabel').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
+  switchView('today');
+});
+
+// Register service worker for PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
+// Make functions global
+window.fetchNutrition=fetchNutrition;
+window.addEntry=addEntry;
+window.deleteEntry=deleteEntry;
+window.state=state;
+window.saveGoals=saveGoals;
+</script>
+
+</body>
+</html>
