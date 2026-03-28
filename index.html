@@ -662,19 +662,19 @@
           pct = Math.min(value / max, 1),
           dash = pct * circ;
         return `<svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
-          <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#1e293b" stroke-width="7"/>
-          <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
-            stroke-dasharray="${dash} ${circ}" stroke-linecap="round" style="transition:stroke-dasharray .6s ease"/>
-        </svg>`;
+                <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#1e293b" stroke-width="7"/>
+                <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+                  stroke-dasharray="${dash} ${circ}" stroke-linecap="round" style="transition:stroke-dasharray .6s ease"/>
+              </svg>`;
       }
 
       function mbar(label, val, goal, color) {
         const pct = Math.min((val / goal) * 100, 100),
           over = val > goal;
         return `<div class="mbar">
-          <div class="mbar-row"><span class="mbar-label">${label}</span><span class="mbar-val" style="color:${over ? "#f87171" : ""}">${Math.round(val)} / ${goal}${label === "Calories" ? "kcal" : "g"}</span></div>
-          <div class="mbar-track"><div class="mbar-fill" style="width:${pct}%;background:${over ? "#f87171" : color}"></div></div>
-        </div>`;
+                <div class="mbar-row"><span class="mbar-label">${label}</span><span class="mbar-val" style="color:${over ? "#f87171" : ""}">${Math.round(val)} / ${goal}${label === "Calories" ? "kcal" : "g"}</span></div>
+                <div class="mbar-track"><div class="mbar-fill" style="width:${pct}%;background:${over ? "#f87171" : color}"></div></div>
+              </div>`;
       }
 
       function showToast(msg) {
@@ -773,9 +773,9 @@
         renderView("add");
 
         const prompt = `You are a nutrition database. The user wants nutrition info for: "${qty ? qty + " of " : ""} ${q}".
-      Return ONLY valid JSON (no markdown, no explanation):
-      {"name":"<descriptive name with quantity>","calories":<number>,"protein":<number>,"carbs":<number>,"fat":<number>,"fiber":<number>}
-      All values per the quantity specified (default 100g if no quantity). Numbers are rounded integers.`;
+            Return ONLY valid JSON (no markdown, no explanation):
+            {"name":"<descriptive name with quantity>","calories":<number>,"protein":<number>,"carbs":<number>,"fat":<number>,"fiber":<number>}
+            All values per the quantity specified (default 100g if no quantity). Numbers are rounded integers.`;
 
         try {
           const raw = await callAIWithFallback(prompt);
@@ -858,87 +858,87 @@
         const installBanner =
           isIOS && !isStandalone
             ? `<div class="install-banner">
-          <span class="install-icon">📲</span>
-          <div class="install-text"><strong>Install on your Home Screen</strong>Tap the Share button → "Add to Home Screen" to use NutriLog as an app.</div>
-        </div>`
+                <span class="install-icon">📲</span>
+                <div class="install-text"><strong>Install on your Home Screen</strong>Tap the Share button → "Add to Home Screen" to use NutriLog as an app.</div>
+              </div>`
             : "";
 
         const mealLog = MEALS.map((meal) => {
           const items = byMeal[meal];
           if (!items.length) return "";
           return `<div class="card">
-            <div class="meal-header">${meal}</div>
-            ${items
-              .map(
-                (e) => `<div class="entry-row">
-              <div class="entry-info">
-                <div class="entry-name">${e.name}</div>
-                <div class="entry-meta">${Math.round(e.protein)}g protein · ${Math.round(e.carbs)}g carbs · ${Math.round(e.fat)}g fat · ${e.time}</div>
-              </div>
-              <span class="entry-cal">${Math.round(e.calories)}</span>
-              <button class="del-btn" onclick="deleteEntry('${e.id}')">×</button>
-            </div>`,
-              )
-              .join("")}
-          </div>`;
+                  <div class="meal-header">${meal}</div>
+                  ${items
+                    .map(
+                      (e) => `<div class="entry-row">
+                    <div class="entry-info">
+                      <div class="entry-name">${e.name}</div>
+                      <div class="entry-meta">${Math.round(e.protein)}g protein · ${Math.round(e.carbs)}g carbs · ${Math.round(e.fat)}g fat · ${e.time}</div>
+                    </div>
+                    <span class="entry-cal">${Math.round(e.calories)}</span>
+                    <button class="del-btn" onclick="deleteEntry('${e.id}')">×</button>
+                  </div>`,
+                    )
+                    .join("")}
+                </div>`;
         }).join("");
 
         return `
-          ${installBanner}
-          <div class="section">
-            <div class="card" style="display:flex;align-items:center;gap:18px">
-              <div class="ring-wrap">
-                ${ring(t.calories, g.calories, "#f97316", 92)}
-                <div class="ring-center">
-                  <div class="ring-cal">${Math.round(t.calories)}</div>
-                  <div class="ring-sub">kcal</div>
+                ${installBanner}
+                <div class="section">
+                  <div class="card" style="display:flex;align-items:center;gap:18px">
+                    <div class="ring-wrap">
+                      ${ring(t.calories, g.calories, "#f97316", 92)}
+                      <div class="ring-center">
+                        <div class="ring-cal">${Math.round(t.calories)}</div>
+                        <div class="ring-sub">kcal</div>
+                      </div>
+                    </div>
+                    <div style="flex:1">
+                      ${mbar("Calories", t.calories, g.calories, "#f97316")}
+                      ${mbar("Protein", t.protein, g.protein, "#3b82f6")}
+                      ${mbar("Carbs", t.carbs, g.carbs, "#a855f7")}
+                      ${mbar("Fat", t.fat, g.fat, "#eab308")}
+                      ${mbar("Fiber", t.fiber, g.fiber, "#22c55e")}
+                    </div>
+                  </div>
+                  <div class="macro-grid">
+                    ${[
+                      ["Protein", "protein", "g", "#3b82f6"],
+                      ["Carbs", "carbs", "g", "#a855f7"],
+                      ["Fat", "fat", "g", "#eab308"],
+                      ["Fiber", "fiber", "g", "#22c55e"],
+                    ]
+                      .map(
+                        ([l, k, u, c]) => `
+                    <div class="macro-mini">
+                      <div class="macro-mini-label">${l}</div>
+                      <div class="macro-mini-val" style="color:${c}">${Math.round(t[k])}<span class="macro-mini-unit">${u}</span></div>
+                      <div class="macro-mini-of">of ${g[k]}${u}</div>
+                    </div>`,
+                      )
+                      .join("")}
+                  </div>
                 </div>
-              </div>
-              <div style="flex:1">
-                ${mbar("Calories", t.calories, g.calories, "#f97316")}
-                ${mbar("Protein", t.protein, g.protein, "#3b82f6")}
-                ${mbar("Carbs", t.carbs, g.carbs, "#a855f7")}
-                ${mbar("Fat", t.fat, g.fat, "#eab308")}
-                ${mbar("Fiber", t.fiber, g.fiber, "#22c55e")}
-              </div>
-            </div>
-            <div class="macro-grid">
-              ${[
-                ["Protein", "protein", "g", "#3b82f6"],
-                ["Carbs", "carbs", "g", "#a855f7"],
-                ["Fat", "fat", "g", "#eab308"],
-                ["Fiber", "fiber", "g", "#22c55e"],
-              ]
-                .map(
-                  ([l, k, u, c]) => `
-              <div class="macro-mini">
-                <div class="macro-mini-label">${l}</div>
-                <div class="macro-mini-val" style="color:${c}">${Math.round(t[k])}<span class="macro-mini-unit">${u}</span></div>
-                <div class="macro-mini-of">of ${g[k]}${u}</div>
-              </div>`,
-                )
-                .join("")}
-            </div>
-          </div>
-          <div class="section">
-            <div class="section-label">Today's Food</div>
-            ${entries.length === 0 ? `<div class="empty"><span class="empty-icon">🥗</span>Nothing logged yet.<br>Tap <b>Add Food</b> to get started.</div>` : mealLog}
-          </div>`;
+                <div class="section">
+                  <div class="section-label">Today's Food</div>
+                  ${entries.length === 0 ? `<div class="empty"><span class="empty-icon">🥗</span>Nothing logged yet.<br>Tap <b>Add Food</b> to get started.</div>` : mealLog}
+                </div>`;
       }
 
       function renderAdd() {
         const f = state.addForm;
         const preview = f.fetched
           ? `<div class="result-preview">
-          <div class="result-food-name">${f.fetched.name}</div>
-          <div class="result-macros">
-            <span class="tag" style="background:#f9731622;color:#f97316">${f.fetched.calories} kcal</span>
-            <span class="tag" style="background:#3b82f622;color:#3b82f6">P: ${f.fetched.protein}g</span>
-            <span class="tag" style="background:#a855f722;color:#a855f7">C: ${f.fetched.carbs}g</span>
-            <span class="tag" style="background:#eab30822;color:#eab308">F: ${f.fetched.fat}g</span>
-            <span class="tag" style="background:#22c55e22;color:#22c55e">Fi: ${f.fetched.fiber}g</span>
-          </div>
-        </div>`
+                <div class="result-food-name">${f.fetched.name}</div>
+                <div class="result-macros">
+                  <span class="tag" style="background:#f9731622;color:#f97316">${f.fetched.calories} kcal</span>
+                  <span class="tag" style="background:#3b82f622;color:#3b82f6">P: ${f.fetched.protein}g</span>
+                  <span class="tag" style="background:#a855f722;color:#a855f7">C: ${f.fetched.carbs}g</span>
+                  <span class="tag" style="background:#eab30822;color:#eab308">F: ${f.fetched.fat}g</span>
+                  <span class="tag" style="background:#22c55e22;color:#22c55e">Fi: ${f.fetched.fiber}g</span>
+                </div>
+              </div>`
           : "";
 
         const statusHtml = state.aiLoading
@@ -950,76 +950,76 @@
               : "";
 
         return `<div class="section">
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">Add Food</div>
-          <div class="card">
-            <div class="form-group">
-              <label class="lbl">What did you eat? (AI will fetch nutrition)</label>
-              <div class="ai-row">
-                <input class="inp" id="q-food" type="text" placeholder="e.g. grilled chicken" value="${escHtml(f.query)}" oninput="state.addForm.query=this.value" onkeydown="if(event.key==='Enter')fetchNutrition()"/>
-                <button class="ai-btn" onclick="fetchNutrition()" ${state.aiLoading ? "disabled" : ""}>
-                  ${state.aiLoading ? '<div class="spinner" style="border-top-color:#fff"></div>' : "✦"} Lookup
-                </button>
-              </div>
-              <input class="inp" id="q-qty" type="text" placeholder="Quantity (e.g. 150g, 1 cup, 2 pieces)" value="${escHtml(f.qty)}" oninput="state.addForm.qty=this.value" style="margin-top:8px"/>
-            </div>
-            ${statusHtml}
-            ${preview}
-            <div class="form-group">
-              <label class="lbl">Meal</label>
-              <select class="inp" onchange="state.addForm.meal=this.value">
-                ${MEALS.map((m) => `<option value="${m}" ${f.meal === m ? "selected" : ""}>${m}</option>`).join("")}
-              </select>
-            </div>
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Nutrition Values — Edit if Needed</div>
-            <div class="form-group">
-              <label class="lbl">Name / Description</label>
-              <input class="inp" type="text" placeholder="Food name" value="${escHtml(f.name)}" oninput="state.addForm.name=this.value"/>
-            </div>
-            <div class="inp-grid" style="margin-bottom:14px">
-              ${[
-                ["Calories (kcal)", "calories"],
-                ["Protein (g)", "protein"],
-                ["Carbs (g)", "carbs"],
-                ["Fat (g)", "fat"],
-                ["Fiber (g)", "fiber"],
-              ]
-                .map(
-                  ([l, k]) => `
-              <div class="form-group" style="margin-bottom:0">
-                <label class="lbl">${l}</label>
-                <input class="inp" type="number" inputmode="decimal" placeholder="0" value="${escHtml(f[k])}" oninput="state.addForm.${k}=this.value"/>
-              </div>`,
-                )
-                .join("")}
-            </div>
-            <button class="btn-primary" onclick="addEntry()">Add to Log</button>
-          </div>
-        </div>`;
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">Add Food</div>
+                <div class="card">
+                  <div class="form-group">
+                    <label class="lbl">What did you eat? (AI will fetch nutrition)</label>
+                    <div class="ai-row">
+                      <input class="inp" id="q-food" type="text" placeholder="e.g. grilled chicken" value="${escHtml(f.query)}" oninput="state.addForm.query=this.value" onkeydown="if(event.key==='Enter')fetchNutrition()"/>
+                      <button class="ai-btn" onclick="fetchNutrition()" ${state.aiLoading ? "disabled" : ""}>
+                        ${state.aiLoading ? '<div class="spinner" style="border-top-color:#fff"></div>' : "✦"} Lookup
+                      </button>
+                    </div>
+                    <input class="inp" id="q-qty" type="text" placeholder="Quantity (e.g. 150g, 1 cup, 2 pieces)" value="${escHtml(f.qty)}" oninput="state.addForm.qty=this.value" style="margin-top:8px"/>
+                  </div>
+                  ${statusHtml}
+                  ${preview}
+                  <div class="form-group">
+                    <label class="lbl">Meal</label>
+                    <select class="inp" onchange="state.addForm.meal=this.value">
+                      ${MEALS.map((m) => `<option value="${m}" ${f.meal === m ? "selected" : ""}>${m}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Nutrition Values — Edit if Needed</div>
+                  <div class="form-group">
+                    <label class="lbl">Name / Description</label>
+                    <input class="inp" type="text" placeholder="Food name" value="${escHtml(f.name)}" oninput="state.addForm.name=this.value"/>
+                  </div>
+                  <div class="inp-grid" style="margin-bottom:14px">
+                    ${[
+                      ["Calories (kcal)", "calories"],
+                      ["Protein (g)", "protein"],
+                      ["Carbs (g)", "carbs"],
+                      ["Fat (g)", "fat"],
+                      ["Fiber (g)", "fiber"],
+                    ]
+                      .map(
+                        ([l, k]) => `
+                    <div class="form-group" style="margin-bottom:0">
+                      <label class="lbl">${l}</label>
+                      <input class="inp" type="number" inputmode="decimal" placeholder="0" value="${escHtml(f[k])}" oninput="state.addForm.${k}=this.value"/>
+                    </div>`,
+                      )
+                      .join("")}
+                  </div>
+                  <button class="btn-primary" onclick="addEntry()">Add to Log</button>
+                </div>
+              </div>`;
       }
 
       function renderGoals() {
         const g = state.goals;
         return `<div class="section">
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">Daily Goals</div>
-          <p class="goals-note">Set your daily nutrition targets. Changes save automatically.</p>
-          <div class="card">
-            ${[
-              ["Calories (kcal)", "calories"],
-              ["Protein (g)", "protein"],
-              ["Carbs (g)", "carbs"],
-              ["Fat (g)", "fat"],
-              ["Fiber (g)", "fiber"],
-            ]
-              .map(
-                ([l, k]) => `
-            <div class="form-group">
-              <label class="lbl">${l}</label>
-              <input class="inp" type="number" inputmode="numeric" value="${g[k]}" oninput="state.goals.${k}=Number(this.value);saveGoals();"/>
-            </div>`,
-              )
-              .join("")}
-          </div>
-        </div>`;
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">Daily Goals</div>
+                <p class="goals-note">Set your daily nutrition targets. Changes save automatically.</p>
+                <div class="card">
+                  ${[
+                    ["Calories (kcal)", "calories"],
+                    ["Protein (g)", "protein"],
+                    ["Carbs (g)", "carbs"],
+                    ["Fat (g)", "fat"],
+                    ["Fiber (g)", "fiber"],
+                  ]
+                    .map(
+                      ([l, k]) => `
+                  <div class="form-group">
+                    <label class="lbl">${l}</label>
+                    <input class="inp" type="number" inputmode="numeric" value="${g[k]}" oninput="state.goals.${k}=Number(this.value);saveGoals();"/>
+                  </div>`,
+                    )
+                    .join("")}
+                </div>
+              </div>`;
       }
 
       function renderHistory() {
@@ -1037,23 +1037,23 @@
               { weekday: "short", month: "short", day: "numeric" },
             );
             return `<div class="card">
-            <div class="hist-row">
-              <div>
-                <div class="hist-date">${label}</div>
-                <div class="hist-sub">${entries.length} item${entries.length !== 1 ? "s" : ""} · ${Math.round(t.protein)}g protein · ${Math.round(t.carbs)}g carbs</div>
-              </div>
-              <div style="text-align:right">
-                <div class="hist-cal">${Math.round(t.calories)}</div>
-                <div class="hist-kcal">kcal</div>
-              </div>
-            </div>
-          </div>`;
+                  <div class="hist-row">
+                    <div>
+                      <div class="hist-date">${label}</div>
+                      <div class="hist-sub">${entries.length} item${entries.length !== 1 ? "s" : ""} · ${Math.round(t.protein)}g protein · ${Math.round(t.carbs)}g carbs</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="hist-cal">${Math.round(t.calories)}</div>
+                      <div class="hist-kcal">kcal</div>
+                    </div>
+                  </div>
+                </div>`;
           })
           .join("");
         return `<div class="section">
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">History</div>
-          ${days.length === 0 ? `<div class="empty"><span class="empty-icon">📅</span>No past days yet.<br>Keep logging!</div>` : rows}
-        </div>`;
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">History</div>
+                ${days.length === 0 ? `<div class="empty"><span class="empty-icon">📅</span>No past days yet.<br>Keep logging!</div>` : rows}
+              </div>`;
       }
 
       // ─── ROUTING ──────────────────────────────────────────────────────────────────
