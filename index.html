@@ -690,12 +690,12 @@
 
       // ─── AI PROVIDERS ────────────────────────────────────────────────────────────
       const AI_CONFIG = {
-        anthropic: {
-          url: "http://localhost:3000/ai",
-          headers: { "Content-Type": "application/json" },
-          buildBody: (prompt) => ({ provider: "anthropic", prompt }),
-          extract: (data) => data.text,
-        },
+        //anthropic: {
+        // url: "http://localhost:3000/ai",
+        // headers: { "Content-Type": "application/json" },
+        // buildBody: (prompt) => ({ provider: "anthropic", prompt }),
+        // extract: (data) => data.text,
+        //},
         openai: {
           url: "http://localhost:3000/ai",
           headers: { "Content-Type": "application/json" },
