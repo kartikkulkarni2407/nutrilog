@@ -148,24 +148,6 @@
   </nav>
 </div>
 
-<script>
-// ─── STATE ────────────────────────────────────────────────────────────────────
-const TODAY = new Date().toISOString().split('T')[0];
-const MACRO_COLORS = {calories:'#f97316',protein:'#3b82f6',carbs:'#a855f7',fat:'#eab308',fiber:'#22c55e'};
-const MEAL_COLORS = {Breakfast:'#f97316',Lunch:'#3b82f6',Dinner:'#a855f7',Snack:'#22c55e'};
-const MEALS = ['Breakfast','Lunch','Dinner','Snack'];
-
-let state = {
-  log: JSON.parse(localStorage.getItem('nutrilog_v2') || '{}'),
-  goals: JSON.parse(localStorage.getItem('nutrilog_goals') || 'null') || {calories:2000,protein:150,carbs:250,fat:65,fiber:30},
-  currentView: 'today',
-  addForm: {query:'',qty:'',meal:'Breakfast',fetched:null,name:'',calories:'',protein:'',carbs:'',fat:'',fiber:''},
-  aiLoading: false,
-  aiError: '',
-  toast: null,
-  aiProvider: 'anthropic',
-};
-
 function saveLog(){ localStorage.setItem('nutrilog_v2', JSON.stringify(state.log)); }
 function saveGoals(){ localStorage.setItem('nutrilog_goals', JSON.stringify(state.goals)); }
 
@@ -598,7 +580,10 @@ function renderAdd(){
       async function callAIWithFallback(prompt) {
         const providers =
           state.aiProvider === "auto"
-            ? ["anthropic", "openai"]
+            ? ["            const AI_CONFIG = {
+              anthropic: {
+                url: 'https://api.anthropic.com/v1/messages',  // ← Direct API call
+                ...ropic", "openai"]
             : [state.aiProvider];
 
         const errors = [];
