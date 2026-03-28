@@ -715,10 +715,16 @@
           body: JSON.stringify(cfg.buildBody(prompt)),
         });
 
-        if (!res.ok) throw new Error(`${provider} failed`);
-
         const data = await res.json();
         console.log("RAW RESPONSE:", data);
+
+        if (!res.ok || data.error) {
+          throw new Error(
+            data.error ||
+              `${provider} request failed with status ${res.status}`,
+          );
+        }
+
         return cfg.extract(data);
       }
 
