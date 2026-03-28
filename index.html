@@ -208,7 +208,7 @@ const AI_CONFIG = {
     url: 'https://api.anthropic.com/v1/messages',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': 'YOUR_ANTHROPIC_KEY',
+      'x-api-key': 'ANTHROPIC_KEY',
       'anthropic-version': '2023-06-01'
     },
     buildBody: (prompt) => ({
@@ -250,6 +250,7 @@ async function callAI(provider, prompt) {
   if (!res.ok) throw new Error(`${provider} failed`);
 
   const data = await res.json();
+  console.log('RAW RESPONSE:', data);
   return cfg.extract(data);
 }
 
@@ -310,10 +311,10 @@ All values per the quantity specified (default 100g if no quantity). Numbers are
     state.addForm.fat = String(parsed.fat);
     state.addForm.fiber = String(parsed.fiber);
 
-  } catch (e) {
-    console.error(e);
-    state.aiError = 'Could not fetch nutrition. You can fill in values manually.';
-  }
+  } catch(e){
+  console.error('AI ERROR:', e);
+  state.aiError = 'AI failed: ' + (e.message || 'Unknown error');
+}
 
   state.aiLoading = false;
   renderView('add');
