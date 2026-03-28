@@ -625,6 +625,7 @@
           carbs: "",
           fat: "",
           fiber: "",
+          source: "", // Track where nutrition data came from
         },
         aiLoading: false,
         aiError: "",
@@ -775,7 +776,7 @@
         return JSON.parse(match[0]);
       }
 
-      // ─── AI NUTRITION FETCH ───────────────────────────────────────────────────────
+      // ─── NUTRITION FETCH (AI + USDA FDC Fallback) ────────────────────────────────
       async function fetchNutrition() {
         const q = state.addForm.query.trim();
         const qty = state.addForm.qty.trim();
@@ -788,16 +789,31 @@
         state.aiLoading = true;
         state.aiError = "";
         state.addForm.fetched = null;
+        state.addForm.source = "";
         renderView("add");
 
-        const prompt = `You are a nutrition database. The user wants nutrition info for: "${qty ? qty + " of " : ""} ${q}".
-            Return ONLY valid JSON (no markdown, no explanation):
-            {"name":"<descriptive name with quantity>","calories":<number>,"protein":<number>,"carbs":<number>,"fat":<number>,"fiber":<number>}
-            All values per the quantity specified (default 100g if no quantity). Numbers are rounded integers.`;
-
         try {
-          const raw = await callAIWithFallback(prompt);
-          const parsed = extractJSON(raw);
+          // Call the new /nutrition endpoint which handles AI + FDC fallback
+          const response = await fetch("http://localhost:3000/nutrition", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: q,
+              qty: qty,
+              provider: state.aiProvider,
+            }),
+          });
+
+          if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(
+              errData.error || `Request failed (${response.status})`,
+            );
+          }
+
+          const data = await response.json();
+          const parsed = extractJSON(data.text);
+          const source = data.source || "Unknown";
 
           state.addForm.fetched = parsed;
           state.addForm.name = parsed.name;
@@ -806,12 +822,15 @@
           state.addForm.carbs = String(parsed.carbs);
           state.addForm.fat = String(parsed.fat);
           state.addForm.fiber = String(parsed.fiber);
+          state.addForm.source = source;
+
+          console.log(`✓ Nutrition fetched from: ${source}`);
         } catch (e) {
-          console.error("AI ERROR:", e);
+          console.error("NUTRITION FETCH ERROR:", e);
           const errorMsg = e.message || "Unknown error";
           // Extract first line of error for display
           const firstLine = errorMsg.split("\n")[0];
-          state.aiError = "AI failed: " + firstLine;
+          state.aiError = "Lookup failed: " + firstLine;
         }
 
         state.aiLoading = false;
@@ -853,6 +872,7 @@
           carbs: "",
           fat: "",
           fiber: "",
+          source: "",
         };
         showToast("✓ Added to log!");
         switchView("today");
@@ -964,7 +984,7 @@
           : state.aiError
             ? `<div class="ai-status" style="color:#f87171">⚠ ${state.aiError}</div>`
             : f.fetched
-              ? `<div class="ai-status" style="color:#22c55e">✓ Nutrition fetched — review & confirm below</div>`
+              ? `<div class="ai-status" style="color:#22c55e">✓ Fetched from ${f.source} — review & confirm below</div>`
               : "";
 
         return `<div class="section">
@@ -982,7 +1002,7 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label class="lbl">What did you eat? (AI will fetch nutrition)</label>
+                    <label class="lbl">What did you eat? (AI or USDA database)</label>
                     <div class="ai-row">
                       <input class="inp" id="q-food" type="text" placeholder="e.g. grilled chicken" value="${escHtml(f.query)}" oninput="state.addForm.query=this.value" onkeydown="if(event.key==='Enter')fetchNutrition()"/>
                       <button class="ai-btn" onclick="fetchNutrition()" ${state.aiLoading ? "disabled" : ""}>
