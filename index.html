@@ -629,7 +629,7 @@
         aiLoading: false,
         aiError: "",
         toast: null,
-        aiProvider: "openai",
+        aiProvider: "auto",
       };
 
       function saveLog() {
@@ -690,16 +690,34 @@
 
       // ─── AI PROVIDERS ────────────────────────────────────────────────────────────
       const AI_CONFIG = {
-        //anthropic: {
-        // url: "http://localhost:3000/ai",
-        // headers: { "Content-Type": "application/json" },
-        // buildBody: (prompt) => ({ provider: "anthropic", prompt }),
-        // extract: (data) => data.text,
-        //},
+        anthropic: {
+          url: "http://localhost:3000/ai",
+          headers: { "Content-Type": "application/json" },
+          buildBody: (prompt) => ({ provider: "anthropic", prompt }),
+          extract: (data) => data.text,
+        },
         openai: {
           url: "http://localhost:3000/ai",
           headers: { "Content-Type": "application/json" },
           buildBody: (prompt) => ({ provider: "openai", prompt }),
+          extract: (data) => data.text,
+        },
+        gemini: {
+          url: "http://localhost:3000/ai",
+          headers: { "Content-Type": "application/json" },
+          buildBody: (prompt) => ({ provider: "gemini", prompt }),
+          extract: (data) => data.text,
+        },
+        cohere: {
+          url: "http://localhost:3000/ai",
+          headers: { "Content-Type": "application/json" },
+          buildBody: (prompt) => ({ provider: "cohere", prompt }),
+          extract: (data) => data.text,
+        },
+        mistral: {
+          url: "http://localhost:3000/ai",
+          headers: { "Content-Type": "application/json" },
+          buildBody: (prompt) => ({ provider: "mistral", prompt }),
           extract: (data) => data.text,
         },
       };
@@ -730,9 +748,8 @@
 
       async function callAIWithFallback(prompt) {
         const providers =
-          state.aiProvider === "openai"
-            ? //["anthropic",
-             [ "openai"]
+          state.aiProvider === "auto"
+            ? ["anthropic", "openai", "gemini"]
             : [state.aiProvider];
 
         const errors = [];
@@ -953,6 +970,17 @@
         return `<div class="section">
                 <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">Add Food</div>
                 <div class="card">
+                  <div class="form-group">
+                    <label class="lbl">AI Provider</label>
+                    <select class="inp" onchange="state.aiProvider=this.value">
+                      <option value="auto" ${state.aiProvider === "auto" ? "selected" : ""}>Auto (Try all)</option>
+                      <option value="anthropic" ${state.aiProvider === "anthropic" ? "selected" : ""}>Anthropic (Claude)</option>
+                      <option value="openai" ${state.aiProvider === "openai" ? "selected" : ""}>OpenAI (GPT)</option>
+                      <option value="gemini" ${state.aiProvider === "gemini" ? "selected" : ""}>Google Gemini</option>
+                      <option value="cohere" ${state.aiProvider === "cohere" ? "selected" : ""}>Cohere</option>
+                      <option value="mistral" ${state.aiProvider === "mistral" ? "selected" : ""}>Mistral</option>
+                    </select>
+                  </div>
                   <div class="form-group">
                     <label class="lbl">What did you eat? (AI will fetch nutrition)</label>
                     <div class="ai-row">
