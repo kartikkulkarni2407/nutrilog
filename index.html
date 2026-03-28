@@ -735,15 +735,19 @@
             ? ["anthropic", "openai"]
             : [state.aiProvider];
 
+        const errors = [];
         for (const p of providers) {
           try {
+            console.log(`Trying provider: ${p}`);
             return await callAI(p, prompt);
           } catch (e) {
-            console.warn(`${p} failed`, e);
+            const msg = e.message || String(e);
+            console.warn(`${p} failed:`, msg);
+            errors.push(`${p}: ${msg}`);
           }
         }
 
-        throw new Error("All providers failed");
+        throw new Error("All providers failed:\n" + errors.join("\n"));
       }
 
       // ─── SAFE JSON EXTRACTION ─────────────────────────────────────────────────────
@@ -787,7 +791,10 @@
           state.addForm.fiber = String(parsed.fiber);
         } catch (e) {
           console.error("AI ERROR:", e);
-          state.aiError = "AI failed: " + (e.message || "Unknown error");
+          const errorMsg = e.message || "Unknown error";
+          // Extract first line of error for display
+          const firstLine = errorMsg.split("\n")[0];
+          state.aiError = "AI failed: " + firstLine;
         }
 
         state.aiLoading = false;
