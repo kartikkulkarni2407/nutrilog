@@ -730,8 +730,9 @@
 
       async function callAIWithFallback(prompt) {
         const providers =
-          state.aiProvider === "auto"
-            ? ["anthropic", "openai"]
+          state.aiProvider === "openai"
+            ? //["anthropic",
+             [ "openai"]
             : [state.aiProvider];
 
         const errors = [];
