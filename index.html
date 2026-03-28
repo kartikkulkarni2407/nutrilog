@@ -21,7 +21,7 @@
   }
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
   #app{height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
-  
+
   /* SCROLLABLE CONTENT */
   #content{flex:1;overflow-y:auto;padding-bottom:80px;scroll-behavior:smooth}
   #content::-webkit-scrollbar{display:none}
@@ -163,6 +163,7 @@ let state = {
   aiLoading: false,
   aiError: '',
   toast: null,
+  aiProvider: 'anthropic',
 };
 
 function saveLog(){ localStorage.setItem('nutrilog_v2', JSON.stringify(state.log)); }
@@ -201,39 +202,120 @@ function showToast(msg){
   state.toastTimer=setTimeout(()=>t.remove(),2500);
 }
 
+// ─── AI PROVIDERS ────────────────────────────────────────────────────────────
+const AI_CONFIG = {
+  anthropic: {
+    url: 'https://api.anthropic.com/v1/messages',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': 'YOUR_ANTHROPIC_KEY',
+      'anthropic-version': '2023-06-01'
+    },
+    buildBody: (prompt) => ({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    extract: (data) =>
+      data.content?.find(b => b.type === 'text')?.text || ''
+  },
+
+  openai: {
+    url: 'https://api.openai.com/v1/chat/completions',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer YOUR_OPENAI_KEY'
+    },
+    buildBody: (prompt) => ({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 300
+    }),
+    extract: (data) =>
+      data.choices?.[0]?.message?.content || ''
+  }
+};
+
+// ─── GENERIC AI CALL ──────────────────────────────────────────────────────────
+async function callAI(provider, prompt) {
+  const cfg = AI_CONFIG[provider];
+  if (!cfg) throw new Error('Unsupported provider');
+
+  const res = await fetch(cfg.url, {
+    method: 'POST',
+    headers: cfg.headers,
+    body: JSON.stringify(cfg.buildBody(prompt))
+  });
+
+  if (!res.ok) throw new Error(`${provider} failed`);
+
+  const data = await res.json();
+  return cfg.extract(data);
+}
+
+// ─── OPTIONAL FALLBACK ────────────────────────────────────────────────────────
+async function callAIWithFallback(prompt) {
+  const providers = state.aiProvider === 'auto'
+    ? ['anthropic', 'openai']
+    : [state.aiProvider];
+
+  for (const p of providers) {
+    try {
+      return await callAI(p, prompt);
+    } catch (e) {
+      console.warn(`${p} failed`, e);
+    }
+  }
+
+  throw new Error('All providers failed');
+}
+
+// ─── SAFE JSON EXTRACTION ─────────────────────────────────────────────────────
+function extractJSON(text) {
+  const clean = text.replace(/```json|```/g, '').trim();
+  const match = clean.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('Invalid JSON response');
+  return JSON.parse(match[0]);
+}
+
 // ─── AI NUTRITION FETCH ───────────────────────────────────────────────────────
-async function fetchNutrition(){
-  const q=state.addForm.query.trim(), qty=state.addForm.qty.trim();
-  if(!q){ showToast('Enter a food name first'); return; }
-  state.aiLoading=true; state.aiError=''; state.addForm.fetched=null;
+async function fetchNutrition() {
+  const q = state.addForm.query.trim();
+  const qty = state.addForm.qty.trim();
+
+  if (!q) {
+    showToast('Enter a food name first');
+    return;
+  }
+
+  state.aiLoading = true;
+  state.aiError = '';
+  state.addForm.fetched = null;
   renderView('add');
 
-  const prompt=`You are a nutrition database. The user wants nutrition info for: "${qty?qty+' of ':''} ${q}".
+  const prompt = `You are a nutrition database. The user wants nutrition info for: "${qty ? qty + ' of ' : ''} ${q}".
 Return ONLY valid JSON (no markdown, no explanation):
 {"name":"<descriptive name with quantity>","calories":<number>,"protein":<number>,"carbs":<number>,"fat":<number>,"fiber":<number>}
 All values per the quantity specified (default 100g if no quantity). Numbers are rounded integers.`;
 
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await res.json();
-    const raw=data.content.find(b=>b.type==='text')?.text||'';
-    const clean=raw.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(clean);
-    state.addForm.fetched=parsed;
-    state.addForm.name=parsed.name;
-    state.addForm.calories=String(parsed.calories);
-    state.addForm.protein=String(parsed.protein);
-    state.addForm.carbs=String(parsed.carbs);
-    state.addForm.fat=String(parsed.fat);
-    state.addForm.fiber=String(parsed.fiber);
-  }catch(e){
-    state.aiError='Could not fetch nutrition. You can fill in values manually.';
+  try {
+    const raw = await callAIWithFallback(prompt);
+    const parsed = extractJSON(raw);
+
+    state.addForm.fetched = parsed;
+    state.addForm.name = parsed.name;
+    state.addForm.calories = String(parsed.calories);
+    state.addForm.protein = String(parsed.protein);
+    state.addForm.carbs = String(parsed.carbs);
+    state.addForm.fat = String(parsed.fat);
+    state.addForm.fiber = String(parsed.fiber);
+
+  } catch (e) {
+    console.error(e);
+    state.aiError = 'Could not fetch nutrition. You can fill in values manually.';
   }
-  state.aiLoading=false;
+
+  state.aiLoading = false;
   renderView('add');
 }
 
